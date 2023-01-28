@@ -1,30 +1,40 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// You can also run a script with `npx hardhat run <script>`. If you do that, Hardhat
-// will compile your contracts, add the Hardhat Runtime Environment's members to the
-// global scope, and execute the script.
+const { ethers } = require("hardhat");
 const hre = require("hardhat");
+const { items } = require("../src/items.json");
+
+const tokens = (n) => {
+  return ethers.utils.parseUnits(n.toString(), "ether");
+};
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  const [deployer] = await ethers.getSigners();
 
-  const lockedAmount = hre.ethers.utils.parseEther("1");
+  const DefiStore = await hre.ethers.getContractFactory("DefiStore");
+  const defiStore = await DefiStore.deploy();
+  await defiStore.deployed();
 
-  const Lock = await hre.ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  console.log(`Deployed contract at: ${defiStore.address}.`);
 
-  await lock.deployed();
+  //List items
+  for (let i = 0; i < items.length; i++) {
+    const transaction = await defiStore
+      .connect(deployer)
+      .list(
+        items[i].id,
+        items[i].name,
+        items[i].category,
+        items[i].image,
+        tokens(items[i].price),
+        items[i].rating,
+        items[i].stock
+      );
 
-  console.log(
-    `Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
-  );
+    await transaction.wait();
+
+    console.log(`Listed item ${items[i].id}: ${items[i].name}`);
+  }
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
