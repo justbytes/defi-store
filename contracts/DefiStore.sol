@@ -17,8 +17,15 @@ contract DefiStore {
         uint stock;
     }
 
+    event List(string name, uint cost, uint quantity);
+
     mapping(uint => Item) public items;
 
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+    
     constructor() { 
         owner = msg.sender;
     }
@@ -31,11 +38,14 @@ contract DefiStore {
     uint _cost,
     uint _rating,
     uint _stock
-    ) public {
+    ) public onlyOwner {
+        
         //create Item sturct
         Item memory item = Item(_id, _name, _category, _image, _cost, _rating, _stock);
         //save Item struct
         items[_id] = item;
+        //Triger event
+        emit List(_name, _cost, _stock);
     }
 
     //buy products
