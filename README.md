@@ -1,3 +1,3 @@
-# defiStore
+# DefiStore
 
 ## Overview
