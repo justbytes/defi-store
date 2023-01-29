@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 //Import components
 import Navigation from "./components/Navigation";
 import Section from "./components/Section";
+import Product from "./components/Product";
 //Import ABI
 import DefiStore from "./abis/DefiStore.json";
 //Import config file
@@ -16,6 +17,13 @@ function App() {
   const [electronics, setElectronics] = useState("");
   const [clothing, setClothing] = useState("");
   const [toys, setToys] = useState("");
+  const [item, setItem] = useState({});
+  const [toggle, setToggle] = useState(false);
+
+  const pop = (item) => {
+    setItem(item);
+    toggle ? setToggle(false) : setToggle(true);
+  };
 
   const loadBlockchainData = async () => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -56,7 +64,28 @@ function App() {
       <Navigation account={account} setAccount={setAccount} />
       <h2>Best Sellers</h2>
       {electronics && clothing && toys && (
-        <Section title={"Clothing & Jewelry"} items={clothing} />
+        <>
+          <Section
+            title={"Clothing & Jewelry"}
+            items={clothing}
+            togglePop={pop}
+          />
+          <Section
+            title={"Electronics & Gadgets"}
+            items={electronics}
+            togglePop={pop}
+          />
+          <Section title={"Toys & Gaming"} items={toys} togglePop={pop} />
+        </>
+      )}
+      {toggle && (
+        <Product
+          item={item}
+          provider={provider}
+          account={account}
+          defiStore={defiStore}
+          togglePop={pop}
+        />
       )}
     </div>
   );
