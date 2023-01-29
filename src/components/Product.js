@@ -5,7 +5,38 @@ import Rating from "./Rating";
 
 import close from "../assets/images/close.svg";
 
-const Product = ({ item, provider, account, defiStore, pop }) => {
+const Product = ({ item, provider, account, defiStore, togglePop }) => {
+  const [order, setOrder] = useState("");
+  const [hasBought, setHasBought] = useState(false);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchDetails = async () => {
+    const events = await defiStore.queryFilter("Buy");
+    const orders = events.filter(
+      (event) =>
+        event.args.buyer === account &&
+        event.args.itemId.toString() === item.id.toString()
+    );
+
+    if (orders.length === 0) return;
+
+    const order = await defiStore.orders(account, orders[0].args.orderId);
+    setOrder(order);
+  };
+
+  const buyHandler = async () => {
+    const signer = await provider.getSigner();
+    let transaction = await defiStore
+      .connect(signer)
+      .buy(item.id, { value: item.cost });
+    await transaction.wait();
+
+    setHasBought(true);
+  };
+
+  useEffect(() => {
+    fetchDetails();
+  }, [fetchDetails, hasBought]);
   return (
     <div className="product">
       <div className="product__details">
@@ -35,6 +66,52 @@ const Product = ({ item, provider, account, defiStore, pop }) => {
             temporibus ex? Optio!
           </p>
         </div>
+        <div className="product__order">
+          <h1>{ethers.utils.formatUnits(item.cost.toString(), "ether")} ETH</h1>
+
+          <p>
+            Free delivery <br />
+            <strong>
+              {new Date(Date.now() + 345600000).toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </strong>
+          </p>
+          {item.stock > 0 ? <p>In Stock.</p> : <p>Out of Stock</p>}
+
+          <button className="product__buy" onClick={buyHandler}>
+            Buy Now
+          </button>
+
+          <p>
+            <small>Ships from</small>DefiStore
+          </p>
+          <p>
+            <small>Sold by</small>DefiStore
+          </p>
+
+          {order && (
+            <div className="product__bought">
+              Item bought on <br />
+              <strong>
+                {new Date(
+                  Number(order.time.toString() + "000")
+                ).toLocaleTimeString(undefined, {
+                  weekday: "long",
+                  hour: "numeric",
+                  minute: "numeric",
+                  second: "numeric",
+                })}
+              </strong>
+            </div>
+          )}
+        </div>
+
+        <button onClick={togglePop} className="product__close">
+          <img src={close} alt="close-button" />
+        </button>
       </div>
     </div>
   );

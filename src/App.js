@@ -20,7 +20,7 @@ function App() {
   const [item, setItem] = useState({});
   const [toggle, setToggle] = useState(false);
 
-  const pop = (item) => {
+  const togglePop = (item) => {
     setItem(item);
     toggle ? setToggle(false) : setToggle(true);
   };
@@ -68,14 +68,14 @@ function App() {
           <Section
             title={"Clothing & Jewelry"}
             items={clothing}
-            togglePop={pop}
+            togglePop={togglePop}
           />
           <Section
             title={"Electronics & Gadgets"}
             items={electronics}
-            togglePop={pop}
+            togglePop={togglePop}
           />
-          <Section title={"Toys & Gaming"} items={toys} togglePop={pop} />
+          <Section title={"Toys & Gaming"} items={toys} togglePop={togglePop} />
         </>
       )}
       {toggle && (
@@ -84,7 +84,7 @@ function App() {
           provider={provider}
           account={account}
           defiStore={defiStore}
-          togglePop={pop}
+          togglePop={togglePop}
         />
       )}
     </div>
